@@ -1,5 +1,5 @@
 #Imports
-import os
+from warnings import catch_warnings
 from numpy import number
 import pandas as pd
 import datetime
@@ -7,7 +7,6 @@ import csv
 from pathlib import Path
 import re
 import xlsxwriter
-import xlrd
 from xlsxwriter.workbook import Workbook
 import numpy as np
 import sys
@@ -86,6 +85,87 @@ def exerciseNameVerifier(exerciseName):
         exerciseName = "invalid"
         return exerciseName
     
+def strongConverter(readArr,i,ii):
+
+    if(readArr[i][ii] == "Exercise"):
+        readArr[i][ii] = "Exercise Name"
+
+    if(readArr[i][ii] == "Weight (kgs)"):
+        readArr[i][ii] = "Weight"
+
+    if(readArr[i][ii] == "Category"):
+        readArr[i][ii] = "Set Order"   
+
+def fitNotesConverter(fileName):
+    #Row Array
+    readArr = []
+    #CSV reader
+    with open(fileName, newline='') as file:
+        reader = csv.reader(file, delimiter=',', quotechar='|')
+        for row in reader:
+            #Store all the rows in readArr to manipulate further
+            readArr.append(row)
+
+    #Iterate over the readArr , change first row(HEADERS) to StrongApp Headers, add Set Order after Exercise
+
+    # Convert Fitnotes CSV into same Headers as StrongApp
+    # i represents the first row of the CSV (first line)
+    for i in range(len(readArr)):
+        for ii in range(len(readArr[i])):
+            strongConverter(readArr,i,ii)
+            
+    # Replace converted CSV Category Header information with the correct Set Order Expected
+    setOrder = 1
+    row = 1
+    while(row < len(readArr)):
+
+        #First row case
+        if(row == 1):
+            readArr[row][2] = setOrder
+            readArr[row][6] = "" #RPE
+            previousExercise = readArr[row][1]
+            row +=1
+            continue #Re-start the for cycle
+
+        #Rest of the rows
+        if(readArr[row][1] == previousExercise):
+            setOrder +=1
+            readArr[row][2] = setOrder
+            readArr[row][6] = "" #RPE
+            row +=1
+
+        else:
+            setOrder = 1
+            readArr[row][2] = setOrder
+            readArr[row][6] = "" #RPE
+            previousExercise = readArr[row][1]
+            row +=1
+    
+    #Write the modified Info in the CSV file
+    with open(fileName, 'w', newline='') as csvfile: 
+        # creating a csv writer object 
+        csvwriter = csv.writer(csvfile)   
+
+        # writing the data rows 
+        csvwriter.writerows(readArr)
+
+def check_data_validity(fileName):
+    with open(fileName, newline = "") as csvfile:
+        try:
+            dialect = csv.Sniffer().sniff(csvfile.read(1024), delimiters = ";")
+            print("Delimiter is ;")
+
+            #Find and replace ; to ,
+            text = open(fileName, "r")
+            text = ''.join([i for i in text]) \
+                .replace(";", ",")
+
+            x = open(fileName,"w")
+            x.writelines(text)
+            x.close()
+
+        except:
+            print("Delimiter is already a ,")
 ############################################################
 ##########################################################
 
@@ -93,17 +173,19 @@ def exerciseNameVerifier(exerciseName):
 users = {"josemiguel": r"FitNotes_Export josemiguel.csv","ruimoreira": r"strong_ruimoreira.csv", 
 "inesbarros": "FitNotes_Export inesbarros.csv", "catarinaferreira": r"strong_catarinaferreira.csv",
 "teste": r"strong_teste.csv", "rui": r"strong_rui.csv", "rui_teste": "strong_rui_teste.csv",
-"joaodias": r"strong_joaodias.csv"}
+"joaodias": r"strong_joaodias.csv", "carlos": r"strong_carlos.csv"}
 
 #Ask for user input manually if not introduced in command line
-# if(len(sys.argv) < 2):
-#     userInput = str(input("Enter the user you want to update.\n")).lower()
-# else:
-#     userInput = sys.argv[1]
+if(len(sys.argv) < 2):
+    userInput = str(input("Enter the user you want to update.\n")).lower()
+else:
+    userInput = sys.argv[1]
 
 #Insert File Name Manually
-#TODO Se for Android deves alterar os ; por , antes de usares esta script
-userInput = "josemiguel"
+#userInput = "rui"
+
+#Checks if the delimiter is a comma (,), if it isnt, converts ; to ,
+check_data_validity(users[userInput])
 
 #fetches the data according to user inputted
 #CSV reader
@@ -114,9 +196,12 @@ with open(users[userInput], newline='') as file:
         #Store all the rows in readArr to manipulate further
         data.append(row)
 
-# PRE-DATA DIGEST TO REMOVE HOURS INCASE OF STRONG EXPORT CSV
+# PRE-DATA DIGEST TO TRANSFORM FITNOTES MODEL INTO STRONG CSV
 if('FitNotes_Export' in users[userInput]):
-    print("No Pre-Processing has to be done")
+    fitNotesConverter(users[userInput])
+    print("Pre-processing done")
+
+# PRE-DATA DIGEST TO REMOVE HOURS INCASE OF STRONG EXPORT CSV    
 else:
     #Delete unecessary Headers
     del data[0][1] 
@@ -293,6 +378,7 @@ for i in range(len(rowIndex)):
         #Need to make for cycle restart with i iterated
         continue
 
+    date = data[row][0]
     serie = int(data[row][2])
 
     #Protection against invalid Data input from users
@@ -305,9 +391,19 @@ for i in range(len(rowIndex)):
     if(exerciseName == "Pull Up" and weight == 0):
         weight = 1.0
 
-    reps = int(data[row][4])
+    try:
+        reps = int(data[row][4])
+    except Exception as e:
+        print(e)
+        print("Error occured in Date: {}; Reps input was: {}.".format(date, data[row][4]))
+        try:
+            reps = int(data[row][5])
+        except Exception as e:
+                 print(e)
+                 print("Tried catching reps in the next column, error still occured.")
+
     rpe = data[row][5]
-    date = data[row][0]
+   
 
     #Exercise Columns
     bpCols = [1, 2, 3, 4, 5]
