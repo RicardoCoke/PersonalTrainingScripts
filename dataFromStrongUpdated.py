@@ -15,24 +15,22 @@ import sys
 def updateLine(exerciseName, chosenLine):
 
     #need to append to corresponding exercise line array    
-    if(exerciseName == "Bench Press (Barbell)" or exerciseName == "Bench Press" or exerciseName == "Supino Deitada" 
-    or exerciseName == "Incline Bench Press (Barbell)" or exerciseName == "Supino inclinado" or exerciseName == "Bench Press (Dumbbell)" ):
+    if(exerciseName.__contains__("Bench Press") or exerciseName.__contains__("Supino")):
         bpLine.append(chosenLine + 1)
     
-    elif(exerciseName == "Squat (Barbell)" or exerciseName == "Squat (Machine)" or exerciseName == "Goblet Squat" 
-        or exerciseName == "Leg Press" or exerciseName == "Agachamento"):
+    elif(exerciseName.__contains__("Squat") or exerciseName == "Leg Press" or exerciseName == "Agachamento"):
         squatLine.append(chosenLine + 1)
 
     elif(exerciseName == "Rowing (Machine)" or exerciseName == "Bent Over Row (Barbell)" or exerciseName == "Remada"):
         rowLine.append(chosenLine + 1)
 
-    elif(exerciseName == "Pull Up" or exerciseName == "Chin Up" or exerciseName == "Pull Up (Band)"):
+    elif(exerciseName.__contains__("Pull Up") or exerciseName == "Chin Up"):
         pullUpLine.append(chosenLine + 1)
 
     elif(exerciseName == "Shoulder Press (Machine)" or exerciseName =="Seated Overhead Press (Dumbbell)"):
         spLine.append(chosenLine + 1)
 
-    elif(exerciseName == "Stiff Leg Deadlift (Barbell)" or exerciseName == "Stiff Leg Deadlift (Dumbbell)" or exerciseName == "Peso morto stiff"):
+    elif(exerciseName.__contains__("Deadlift") or exerciseName == "Peso morto stiff"):
         stiffLine.append(chosenLine + 1)
 
     elif(exerciseName == "Hip Thrust (Barbell)"):
@@ -41,43 +39,34 @@ def updateLine(exerciseName, chosenLine):
 #Transforms similiar movement in valid exercise Name
 def exerciseNameVerifier(exerciseName):
 
-    if(exerciseName == "\"Bench Press (Barbell)\"" or exerciseName == "\"Bench Press\"" or exerciseName == "\"Supino Deitada\"" or exerciseName == "\"Incline Bench Press (Barbell)\""  
-        or exerciseName == "\"Supino inclinado\"" or exerciseName == "\"Bench Press (Dumbbell)\"" or exerciseName == "Bench Press (Barbell)" or exerciseName == "Bench Press" or exerciseName == "Supino Deitada" or exerciseName == "Incline Bench Press (Barbell)"  
-        or exerciseName == "Supino inclinado" or exerciseName == "Bench Press (Dumbbell)"):
+    if(exerciseName.__contains__("Bench Press") or exerciseName.__contains__("Supino")):
 
          exerciseName = "Bench Press (Barbell)"
          return exerciseName
     
-    elif(exerciseName == "\"Squat (Barbell)\"" or exerciseName == "\"Squat (Machine)\"" or exerciseName == "\"Goblet Squat\""  or exerciseName == "\"Leg Press\"" 
-        or exerciseName =="\"Agachamento\"" or exerciseName == "\"Goblet Squat (Kettlebell)\"" or exerciseName == "Squat (Barbell)" or exerciseName == "Squat (Machine)" or exerciseName == "Goblet Squat"  or exerciseName == "Leg Press" 
-        or exerciseName =="Agachamento" or exerciseName == "Goblet Squat (Kettlebell)" or exerciseName == "\"Globet Squat\"" or exerciseName == "Globet Squat"):
+    elif(exerciseName.__contains__("Squat") or exerciseName.__contains__("Leg Press") or exerciseName.__contains__("Agachamento")):
 
          exerciseName = "Squat (Barbell)"
          return exerciseName
 
-    elif(exerciseName == "\"Rowing (Machine)\"" or exerciseName == "\"Bent Over Row (Barbell)\"" or exerciseName == "\"Remada\"" 
-        or exerciseName == "Rowing (Machine)" or exerciseName == "Bent Over Row (Barbell)" or exerciseName == "Remada"):
+    elif(exerciseName.__contains__("Rowing") or exerciseName.__contains__("Bent Over Row") or exerciseName.__contains__("Remada")):
 
         exerciseName = "Rowing (Machine)"
         return exerciseName
         
-    elif(exerciseName == "\"Pull Up\"" or exerciseName == "\"Chin Up\"" or exerciseName == "\"Pull Up (Band)\"" or exerciseName == "\"Lat Pulldown (Cable)\"" or exerciseName == "\"Lat Pulldown\""
-        or exerciseName == "Pull Up" or exerciseName == "Chin Up" or exerciseName == "Pull Up (Band)" or exerciseName == "Lat Pulldown (Cable)" or exerciseName == "Lat Pulldown" ):
+    elif(exerciseName.__contains__("Pull Up") or exerciseName.__contains__("Chin Up") or exerciseName.__contains__("Pulldown")):
         exerciseName = "Pull Up"
         return exerciseName
 
-    elif(exerciseName == "\"Shoulder Press (Machine)\"" or exerciseName =="\"Seated Overhead Press (Dumbbell)\"" or exerciseName == "Shoulder Press (Machine)" or exerciseName =="Seated Overhead Press (Dumbbell)"
-        or exerciseName == "\"Hammer Strength Shoulder Press\"" or exerciseName == "Hammer Strength Shoulder Press" ):
+    elif(exerciseName.__contains__("Shoulder Press") or exerciseName.__contains__("Seated Overhead Press")):
         exerciseName = "Shoulder Press (Machine)" 
         return exerciseName
 
-    elif(exerciseName == "\"Stiff Leg Deadlift (Barbell)\"" or exerciseName == "\"Stiff Leg Deadlift (Dumbbell)\"" or exerciseName =="\"Peso morto stiff\"" or exerciseName == "\"Deadlift (Band)\""
-        or exerciseName == "\"Deadlift (Barbell)\"" or exerciseName == "Stiff Leg Deadlift (Barbell)" or exerciseName == "Stiff Leg Deadlift (Dumbbell)" or exerciseName =="Peso morto stiff" or exerciseName == "Deadlift (Band)"
-        or exerciseName == "Deadlift (Barbell)"):
+    elif(exerciseName.__contains__("Deadlift") or exerciseName.__contains__("Peso morto")):
         exerciseName = "Stiff Leg Deadlift (Barbell)"
         return exerciseName
 
-    elif(exerciseName == "\"Hip Thrust (Barbell)\"" or exerciseName == "Hip Thrust (Barbell)" or exerciseName == "\"Glute Kickback\"" or exerciseName == "Glute Kickback"):
+    elif(exerciseName.__contains__("Hip Thrust") or exerciseName.__contains__("Glute Kickback")):
         exerciseName = "Hip Thrust (Barbell)"
         return exerciseName
          
