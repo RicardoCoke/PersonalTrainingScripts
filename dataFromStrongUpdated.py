@@ -36,6 +36,9 @@ def updateLine(exerciseName, chosenLine):
     elif(exerciseName == "Hip Thrust (Barbell)"):
         hpLine.append(chosenLine + 1)
 
+    elif(exerciseName == "Lunge"):
+        lungeLine.append(chosenLine + 1)
+
 #Transforms similiar movement in valid exercise Name
 def exerciseNameVerifier(exerciseName):
 
@@ -69,6 +72,10 @@ def exerciseNameVerifier(exerciseName):
     elif(exerciseName.__contains__("Hip Thrust") or exerciseName.__contains__("Glute Kickback")):
         exerciseName = "Hip Thrust (Barbell)"
         return exerciseName
+
+    elif(exerciseName.__contains__("Lunge")):
+        exerciseName = "Lunge"
+        return exerciseName
          
     else:
         exerciseName = "invalid"
@@ -86,16 +93,21 @@ def strongConverter(readArr,i,ii):
         readArr[i][ii] = "Set Order"   
 
 def fitNotesConverter(fileName):
-    #Row Array
+    # Row Array
     readArr = []
-    #CSV reader
+    # CSV reader
     with open(fileName, newline='') as file:
         reader = csv.reader(file, delimiter=',', quotechar='|')
         for row in reader:
             #Store all the rows in readArr to manipulate further
             readArr.append(row)
 
-    #Iterate over the readArr , change first row(HEADERS) to StrongApp Headers, add Set Order after Exercise
+    # Verifies if Data was already Converted Before (Row 1, Column 7 should be "wasConverted")
+    if (readArr[1][7] == "wasConverted"):
+        print("Data was already converted before.")
+        return
+
+    # Iterate over the readArr , change first row (HEADERS) to StrongApp Headers, add Set Order after Exercise
 
     # Convert Fitnotes CSV into same Headers as StrongApp
     # i represents the first row of the CSV (first line)
@@ -108,15 +120,16 @@ def fitNotesConverter(fileName):
     row = 1
     while(row < len(readArr)):
 
-        #First row case
+        # First row case
         if(row == 1):
             readArr[row][2] = setOrder
-            readArr[row][6] = "" #RPE
+            readArr[row][6] = "" # RPE
+            readArr[row][7] = "wasConverted"
             previousExercise = readArr[row][1]
             row +=1
-            continue #Re-start the for cycle
+            continue # Re-start the for cycle
 
-        #Rest of the rows
+        # Rest of the rows
         if(readArr[row][1] == previousExercise):
             setOrder +=1
             readArr[row][2] = setOrder
@@ -155,43 +168,14 @@ def check_data_validity(fileName):
 
         except:
             print("Delimiter is already a ,")
-############################################################
-##########################################################
 
-#users hashtable
-users = {"josemiguel": r"FitNotes_Export josemiguel.csv","ruimoreira": r"strong_ruimoreira.csv", 
-"inesbarros": "FitNotes_Export inesbarros.csv", "catarinaferreira": r"strong_catarinaferreira.csv",
-"teste": r"strong_teste.csv", "rui": r"strong_rui.csv", "rui_teste": "strong_rui_teste.csv",
-"joaodias": r"strong_joaodias.csv", "carlos": r"strong_carlos.csv"}
+def removeHeadersStrong():
+    # Verify if data was digested before
+    for i in range(0, len(data[0])):
+        if (data[0][i] == "wasConverted"):
+            print("Data was converted before.")
+            return
 
-#Ask for user input manually if not introduced in command line
-if(len(sys.argv) < 2):
-    userInput = str(input("Enter the user you want to update.\n")).lower()
-else:
-    userInput = sys.argv[1]
-
-#Insert File Name Manually
-#userInput = "rui"
-
-#Checks if the delimiter is a comma (,), if it isnt, converts ; to ,
-check_data_validity(users[userInput])
-
-#fetches the data according to user inputted
-#CSV reader
-data = []
-with open(users[userInput], newline='') as file:
-    reader = csv.reader(file, delimiter=',', quotechar='|')
-    for row in reader:
-        #Store all the rows in readArr to manipulate further
-        data.append(row)
-
-# PRE-DATA DIGEST TO TRANSFORM FITNOTES MODEL INTO STRONG CSV
-if('FitNotes_Export' in users[userInput]):
-    fitNotesConverter(users[userInput])
-    print("Pre-processing done")
-
-# PRE-DATA DIGEST TO REMOVE HOURS INCASE OF STRONG EXPORT CSV    
-else:
     #Delete unecessary Headers
     del data[0][1] 
     del data[0][4]
@@ -207,6 +191,9 @@ else:
         del data[i][1] #Workout name
         del data[i][4] #Weight Unit
 
+    # Add Mark that data was digested before (wasConverted)
+    data[0][9] = "wasConverted"
+
     #Write the modified Info in the CSV file
     with open(users[userInput], 'w', newline='') as csvfile: 
         # creating a csv writer object 
@@ -214,6 +201,56 @@ else:
 
         # writing the data rows 
         csvwriter.writerows(data)
+        return
+
+def fillDataObject(data):
+    with open(users[userInput], newline='') as file:
+        reader = csv.reader(file, delimiter=',', quotechar='|')
+        for row in reader:
+            #Store all the rows in readArr to manipulate further
+            data.append(row)
+
+############################################################
+##########################################################
+
+# Users hashtable
+users = {"josemiguel": r"FitNotes_Export josemiguel.csv","ruimoreira": r"strong_ruimoreira.csv", 
+"inesbarros": "FitNotes_Export inesbarros.csv", "catarinaferreira": r"strong_catarinaferreira.csv",
+"teste": r"strong_teste.csv", "rui": r"strong_rui.csv", "rui_teste": "strong_rui_teste.csv",
+"joaodias": r"strong_joaodias.csv", "carlos": r"strong_carlos.csv", "samir": r"strong_samir.csv"}
+
+# Exercise List
+exerciseList = ["Bench Press (Barbell)","Squat (Barbell)","Rowing (Machine)","Pull Up",
+"Shoulder Press (Machine)","Stiff Leg Deadlift (Barbell)","Hip Thrust (Barbell)", "Lunge"]
+
+#Ask for user input manually if not introduced in command line
+if(len(sys.argv) < 2):
+    userInput = str(input("Enter the user you want to update.\n")).lower()
+else:
+    userInput = sys.argv[1]
+
+#Insert File Name Manually
+#userInput = "rui"
+
+#Checks if the delimiter is a comma (,), if it isnt, converts ; to ,
+check_data_validity(users[userInput])
+
+# Fills the Data array with the info from CSV
+data = []
+fillDataObject(data)
+
+# PRE-DATA DIGEST TO TRANSFORM FITNOTES MODEL INTO STRONG CSV
+if('FitNotes_Export' in users[userInput]):
+    fitNotesConverter(users[userInput])
+    print("Pre-processing done")
+
+# PRE-DATA DIGEST TO REMOVE HOURS INCASE OF STRONG EXPORT CSV
+else:
+    removeHeadersStrong()
+
+# Re-Update Data object with CSV modifications
+fillDataObject(data)
+
 ####################################################################
 
 # Dates for validation
@@ -230,6 +267,9 @@ for rowi in range(1,len(data)):
 
     #Regex to isolate date from other stuff
     onlyDate = data[rowi][0]
+    if(onlyDate == "Date"):
+        break
+
 
     #Gets the day and year from the DataFrame object
     day = int(re.split('-',onlyDate)[2])
@@ -259,6 +299,7 @@ pullUpLine = [3]
 spLine = [3]
 stiffLine = [3]
 hpLine = [3]
+lungeLine = [3]
 column = 1
 line = 1
 
@@ -290,61 +331,34 @@ subRelHeadFormat = workbook.add_format()
 subRelHeadFormat.set_bg_color("#DA9694")
 subRelHeadFormat.set_font_color("white")
 
-#Headers
-headerArr= np.arange(60)
-headIndex = 0
-for i in range(0,7):
-    worksheet.write(line+1, headerArr[headIndex+1], "Set"    ,subHeadFormat )
-    worksheet.write(line+1, headerArr[headIndex+2], "Weight" ,subHeadFormat )
-    worksheet.write(line+1, headerArr[headIndex+3], "Reps"   ,subHeadFormat )
-    worksheet.write(line+1, headerArr[headIndex+4], "RPE"    ,subHeadFormat )
-    worksheet.write(line+1, headerArr[headIndex+5], "Data"   ,subHeadFormat )
-    worksheet.write(line+1, headerArr[headIndex+6], "&Weight",subRelHeadFormat )
-    worksheet.write(line+1, headerArr[headIndex+7], "&Reps"  ,subRelHeadFormat )
-    headIndex +=8
+#Exercise Headers Function
+def writeHeaders():
+    # Headers
+    headerArr = np.arange(round(len(exerciseList) * 8.57))
+    headIndex = 0
 
-#Exercise Headers 
-worksheet.write(line, 1 ,"Bench Press", headFormat)
-for iii in range(2,6):
-    worksheet.write(line, iii ,"", headFormat) #fill the headers until Relative perf
-worksheet.write(line, 6 ,"Relative Performance", relHeadWidthFormat)
-worksheet.write(line, 7 ,"", relHeadFormat)
+    for i in range(0, exerciseList.__len__()):
+        worksheet.write(line + 1, headerArr[headIndex + 1], "Set", subHeadFormat)
+        worksheet.write(line + 1, headerArr[headIndex + 2], "Weight", subHeadFormat)
+        worksheet.write(line + 1, headerArr[headIndex + 3], "Reps", subHeadFormat)
+        worksheet.write(line + 1, headerArr[headIndex + 4], "RPE", subHeadFormat)
+        worksheet.write(line + 1, headerArr[headIndex + 5], "Data", subHeadFormat)
+        worksheet.write(line + 1, headerArr[headIndex + 6], "&Weight", subRelHeadFormat)
+        worksheet.write(line + 1, headerArr[headIndex + 7], "&Reps", subRelHeadFormat)
+        headIndex += 8
 
-worksheet.write(line, 9 , "Squat", headFormat )
-for iii in range(10,14):
-    worksheet.write(line, iii ,"", headFormat)
-worksheet.write(line, 14 ,"Relative Performance", relHeadWidthFormat)
-worksheet.write(line, 15 ,"", relHeadFormat)
+    # Exercise Names and Relative Performance
+    i_header = 1
+    for exercise in exerciseList:
+        worksheet.write(line, i_header, exercise, headFormat)
+        for iii in range(i_header+1, i_header+5):
+            worksheet.write(line, iii, "", headFormat)
+        worksheet.write(line, i_header+5, "Relative Performance", relHeadWidthFormat)
+        worksheet.write(line, i_header+6, "", relHeadFormat)
+        i_header += 8
 
-worksheet.write(line, 17, "Row" , headFormat)
-for iii in range(18,22):
-    worksheet.write(line, iii ,"", headFormat)
-worksheet.write(line, 22 ,"Relative Performance", relHeadWidthFormat)
-worksheet.write(line, 23 ,"", relHeadFormat)
-
-worksheet.write(line, 25, "Pull Up", headFormat )
-for iii in range(26,30):
-    worksheet.write(line, iii ,"", headFormat)
-worksheet.write(line, 30 ,"Relative Performance", relHeadWidthFormat)
-worksheet.write(line, 31 ,"", relHeadFormat)
-
-worksheet.write(line, 33, "Shoulder Press", headFormat )
-for iii in range(34,38):
-    worksheet.write(line, iii ,"", headFormat)
-worksheet.write(line, 38 ,"Relative Performance", relHeadWidthFormat)
-worksheet.write(line, 39 ,"", relHeadFormat)
-
-worksheet.write(line, 41, "Stiff Leg Deadlift", headFormat )
-for iii in range(42,46):
-    worksheet.write(line, iii ,"", headFormat)
-worksheet.write(line, 46 ,"Relative Performance", relHeadWidthFormat)
-worksheet.write(line, 47 ,"", relHeadFormat)
-
-worksheet.write(line, 49, "Hip Thrust", headFormat )
-for iii in range(50,54):
-    worksheet.write(line, iii ,"", headFormat)
-worksheet.write(line, 54 ,"Relative Performance", relHeadWidthFormat)
-worksheet.write(line, 55 ,"", relHeadFormat)
+# Writes the Headers (Exercise Name, Sets, Reps, etc)
+writeHeaders()
 
 #Get Initial exercise name and Date
 exerciseName = exerciseNameVerifier(data[rowIndex[0]][1])
@@ -394,7 +408,7 @@ for i in range(len(rowIndex)):
     rpe = data[row][5]
    
 
-    #Exercise Columns
+    #Exercise Columns (#TODO Refactor this into a function)
     bpCols = [1, 2, 3, 4, 5]
     squatCols = [9,10,11,12,13]
     rowCols = [17,18,19,20,21]
@@ -402,23 +416,21 @@ for i in range(len(rowIndex)):
     spCols = [33,34,35,36,37]
     stiffCols = [41,42,43,44,45]
     hpCols = [49,50,51,52,53]
+    lungeCols = [57,58,59,60,61]
 
     #Writes two empty Line to divide different date workout data
     if(previousDate != date or previousExercise != exerciseName):
         emptyLine = chosenLine+1
         worksheet.write(emptyLine, chosenArr[0], "")
         worksheet.write(emptyLine+1, chosenArr[0], "")
-
         updateLine(previousExercise, emptyLine+1)
 
     #Exercise present in actual line
-    #TODO, a regex that searches for the exercise name would be convenient to avoid a lot of ORs
-
-    if(exerciseName == "Bench Press (Barbell)" or exerciseName == "Bench Press" or exerciseName == "Supino Deitada" or exerciseName == "Incline Bench Press (Barbell)" ):
+    if(exerciseName.__contains__("Bench Press") or exerciseName.__contains__("Supino")):
         chosenArr = bpCols
         chosenLine = bpLine[-1] #Last Recorded Line for Exercise
     
-    elif(exerciseName == "Squat (Barbell)" or exerciseName == "Squat (Machine)" or exerciseName == "Goblet Squat" or exerciseName == "Leg Press"):
+    elif(exerciseName.__contains__("Squat") or exerciseName == "Leg Press"):
         chosenArr = squatCols
         chosenLine = squatLine[-1]
 
@@ -434,13 +446,17 @@ for i in range(len(rowIndex)):
         chosenArr = spCols
         chosenLine = spLine[-1]
 
-    elif(exerciseName == "Stiff Leg Deadlift (Barbell)" or exerciseName == "Stiff Leg Deadlift (Dumbbell)"):
+    elif(exerciseName.__contains__("Deadlift")):
         chosenArr = stiffCols   
         chosenLine = stiffLine[-1] 
 
     elif(exerciseName == "Hip Thrust (Barbell)"):
         chosenArr = hpCols   
         chosenLine = hpLine[-1]
+    
+    elif(exerciseName.__contains__("Lunge")):
+        chosenArr = lungeCols   
+        chosenLine = lungeLine[-1]
 
 
     #Add the series, weight, reps and RPE to the xlsx
@@ -460,9 +476,6 @@ workbook.close()
 ######################### PART 2 - Volume calculation and cell coloring ###############################
 #######################################################################################################
 #######################################################################################################
-
-exerciseList = ["Bench Press (Barbell)","Squat (Barbell)","Rowing (Machine)","Pull Up",
-"Shoulder Press (Machine)","Stiff Leg Deadlift (Barbell)","Hip Thrust (Barbell)"]
 
 #Reading library requirements
 from openpyxl import load_workbook
@@ -485,12 +498,13 @@ def findLastLineExercise(exerciseName):
     spCols = [33,34,35,36,37]
     stiffCols = [41,42,43,44,45]
     hpCols = [49,50,51,52,53]
+    lungeCols = [57,58,59,60,61]
 
-    if(exerciseName == "Bench Press (Barbell)" or exerciseName == "Bench Press" or exerciseName == "Supino Deitada" ):
+    if(exerciseName.__contains__("Bench Press") or exerciseName.__contains__("Supino")):
         chosenArr = bpCols
         chosenLine = bpLine[-1] #Last Recorded Line for Exercise
     
-    elif(exerciseName == "Squat (Barbell)" or exerciseName == "Squat (Machine)" or exerciseName == "Goblet Squat"):
+    elif(exerciseName.__contains__("Squat") or exerciseName.__contains__("Leg press")):
         chosenArr = squatCols
         chosenLine = squatLine[-1]
 
@@ -506,13 +520,17 @@ def findLastLineExercise(exerciseName):
         chosenArr = spCols
         chosenLine = spLine[-1]
 
-    elif(exerciseName == "Stiff Leg Deadlift (Barbell)"):
+    elif(exerciseName.__contains__("Deadlift")):
         chosenArr = stiffCols   
         chosenLine = stiffLine[-1] 
 
     elif(exerciseName == "Hip Thrust (Barbell)"):
         chosenArr = hpCols   
         chosenLine = hpLine[-1]
+
+    elif(exerciseName.__contains__("Lunge")):
+        chosenArr = lungeCols   
+        chosenLine = lungeLine[-1]
 
     return chosenLine
 
@@ -523,21 +541,20 @@ def cellValue(sheet, rows, cols):
 #Function that returns the cell in which the first data from the exercise is
 def findExerciseIndex(exerciseName, sheet):
     findIndexArr = []
+    row_num = 2
 
-    for col_num in range(1,60):
-        for row_num in range(1,4):
+    for col_num in range(2,60,8):
+        cellExercise = str(sheet.cell(row = row_num, column = col_num).value)
 
-            cellExercise = str(sheet.cell(row = row_num, column = col_num).value)
+        if cellExercise in exerciseName:
 
-            if cellExercise in exerciseName:
+            serieCellIndex_col = col_num
+            findIndexArr.append(serieCellIndex_col)
 
-                serieCellIndex_col = col_num
-                findIndexArr.append(serieCellIndex_col)
+            serieCellIndex_row = row_num+2
+            findIndexArr.append(serieCellIndex_row)
 
-                serieCellIndex_row = row_num+2
-                findIndexArr.append(serieCellIndex_row)
-
-                return findIndexArr
+            return findIndexArr
 
 # This function will be responsible for iterating all the series of the session and calculating volumes
 def perfComparisonWritter(serieCellIndex, sheet, exerciseName):
@@ -569,12 +586,12 @@ def perfComparisonWritter(serieCellIndex, sheet, exerciseName):
         sheet.cell(row = ii, column = col_s + 6).border = Border(right=Side(style='thick'))
 
     #Adjust Column Width for Relative Performance column
-    RelPerfHeaders = [7,15,23,31,39,47,55]
+    RelPerfHeaders = [7,15,23,31,39,47,55,63]
     for ii in RelPerfHeaders:
         sheet.column_dimensions[get_column_letter(ii)].width = 19
     
     #Adjust Column Width for Data Column
-    RelPerfHeaders = [6,14,22,30,38,46,54]
+    RelPerfHeaders = [6,14,22,30,38,46,54,62]
     for ii in RelPerfHeaders:
         sheet.column_dimensions[get_column_letter(ii)].width = 10
 
